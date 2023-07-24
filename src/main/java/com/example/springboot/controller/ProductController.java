@@ -35,7 +35,6 @@ public class ProductController {
     }
 
     // metodo get - listando apenas um produto
-
     @GetMapping("/products/{id}")
     public ResponseEntity<Object> getOneProduct(@PathVariable(value="id") UUID id){
         Optional<ProductModel> productOptional = productRepository.findById(id);
@@ -57,6 +56,17 @@ public class ProductController {
         var productModel = productOptional.get();
         BeanUtils.copyProperties(productRecordDto, productModel);
         return ResponseEntity.status(HttpStatus.OK).body(productRepository.save(productModel));
+    }
+
+    // metodo delete - deletando um produto
+    @DeleteMapping("/products/{id}")
+    public ResponseEntity<Object> deleteProduct(@PathVariable(value = "id") UUID id){
+        Optional<ProductModel> productOptional = productRepository.findById(id);
+        if(productOptional.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found.");
+        }
+        productRepository.delete(productOptional.get());
+        return ResponseEntity.status(HttpStatus.OK).body("Product delected sucessfully");
     }
 
 }
