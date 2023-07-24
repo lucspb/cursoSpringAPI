@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+
 @RestController
 public class ProductController {
 
@@ -31,7 +34,15 @@ public class ProductController {
     // metodo get - listando todos os produtos
     @GetMapping("/products")
     public ResponseEntity<List<ProductModel>> getAllProducts(){
-        return ResponseEntity.status(HttpStatus.OK).body(productRepository.findAll());
+        // inserindo hateoas
+        List<ProductModel> productsList = productRepository.findAll();
+        if(!productsList.isEmpty()){
+            for(ProductModel product : productsList) {
+                UUID id = product.getIdProduct();
+                product.add(linkTo(methodOn(ProductController.class).getOneProduct(id)).withSelfRel());
+            }
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(productsList);
     }
 
     // metodo get - listando apenas um produto
@@ -41,6 +52,7 @@ public class ProductController {
         if(productOptional.isEmpty()){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found.");
         }
+        productOptional.get().add(linkTo(methodOn(ProductController.class).getAllProducts()).withRel("Products List"));
         return ResponseEntity.status(HttpStatus.OK).body(productOptional.get());
     }
 
